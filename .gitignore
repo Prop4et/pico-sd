@@ -1,3 +1,4 @@
 build
 lib/bsec/*
 !lib/bsec/CMakeLists.txt
+.vscode
