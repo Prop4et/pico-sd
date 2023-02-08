@@ -1,0 +1,4 @@
+add_subdirectory(bme68x)
+add_subdirectory(bme_api)
+add_subdirectory(bsec)
+add_subdirectory(no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI build)
