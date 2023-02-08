@@ -31,31 +31,24 @@ void check_rslt_api(int8_t rslt, const char api_name[])
             break;
         case BME68X_E_NULL_PTR:
             printf("API name [%s]  Error [%d] : Null pointer\r\n", api_name, rslt);
-            blink();
             break;
         case BME68X_E_COM_FAIL:
             printf("API name [%s]  Error [%d] : Communication failure\r\n", api_name, rslt);
-            blink();
             break;
         case BME68X_E_INVALID_LENGTH:
             printf("API name [%s]  Error [%d] : Incorrect length parameter\r\n", api_name, rslt);
-            blink();
             break;
         case BME68X_E_DEV_NOT_FOUND:
             printf("API name [%s]  Error [%d] : Device not found\r\n", api_name, rslt);
-            blink();
             break;
         case BME68X_E_SELF_TEST:
             printf("API name [%s]  Error [%d] : Self test error\r\n", api_name, rslt);
-            blink();
             break;
         case BME68X_W_NO_NEW_DATA:
             printf("API name [%s]  Warning [%d] : No new data found\r\n", api_name, rslt);
-            blink();
             break;
         default:
             printf("API name [%s]  Error [%d] : Unknown error code\r\n", api_name, rslt);
-            blink();
             break;
     }
 }
@@ -67,11 +60,9 @@ void check_rslt_bsec(bsec_library_return_t rslt, const char api_name[]){
             break;
         case BSEC_E_DOSTEPS_INVALIDINPUT:
             printf("API name [%s]  Error [%d] : dev_id passed to bsec_do_steps() invalid range or virtual\r\n", api_name, rslt);
-            blink();
             break;
         default:
             printf("API name [%s]  Error [%d] : Unknown error code\r\n", api_name, rslt);
-            blink();
             break;
     }
 }
