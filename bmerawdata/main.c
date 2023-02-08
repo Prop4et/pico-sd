@@ -1,0 +1,7 @@
+#include "pico/stdlib.h"
+#include "hardware/i2c.h"
+#include "../includes/bme68x/bme68x.h"
+#include "../includes/bme_api/bme68x_API.h"
+#include "../includes/bsec/bsec_datatypes.h"
+#include "../includes/bsec/bsec_interface.h"
+#include "../includes/littlefs-lib/pico_hal.h"
