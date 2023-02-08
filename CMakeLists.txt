@@ -13,4 +13,6 @@ endif()
 # Initialize the SDK
 pico_sdk_init()
 
+add_subdirectory(lib)
 add_subdirectory(only_sd)
+add_subdirectory(bmerawdata)

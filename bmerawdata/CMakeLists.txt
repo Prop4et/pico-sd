@@ -8,6 +8,10 @@ target_include_directories(bmerawdata PRIVATE
 )
 
 # Tell CMake where to find other source code
+SET_TARGET_PROPERTIES(bsec PROPERTIES LINKER_LANGUAGE C)
+
+add_library(algobsec STATIC IMPORTED)
+set_property(TARGET algobsec PROPERTY IMPORTED_LOCATION ${ALGOBSEC_PATH}/libalgobsec.a) 
 
 target_link_libraries(bmerawdata 
     bme68x
@@ -15,9 +19,10 @@ target_link_libraries(bmerawdata
     bsec
     FatFs_SPI
     pico_stdlib
+    hardware_i2c
+    algobsec
 )
 
-add_subdirectory(lib)
 
 #enable usb output
 pico_enable_stdio_usb(bmerawdata 1)
