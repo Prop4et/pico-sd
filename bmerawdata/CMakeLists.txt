@@ -20,6 +20,7 @@ target_link_libraries(bmerawdata
     pico_stdlib
     hardware_i2c
     algobsec
+    json
 )
 
 
