@@ -5,6 +5,9 @@
 #include "../lib/bme_api/bme68x_API.h"
 #include "../lib/bsec/bsec_datatypes.h"
 #include "../lib/bsec/bsec_interface.h"
+#include "sd_card.h"
+#include "ff.h"
+#include "../lib/json/read_json.h"
 
 void print_results(int id, float signal, int accuracy){
     switch(id){
@@ -45,45 +48,75 @@ int main(){
     /*
     BSEC VARIABLES
 */
-bsec_library_return_t rslt_bsec;
-//measurements basically
-bsec_sensor_configuration_t requested_virtual_sensors[4];
-uint8_t n_requested_virtual_sensors = 4;
-// Allocate a struct for the returned physical sensor settings
-bsec_sensor_configuration_t required_sensor_settings[BSEC_MAX_PHYSICAL_SENSOR]; 
-uint8_t n_required_sensor_settings = BSEC_MAX_PHYSICAL_SENSOR;
-//configuration coming from bsec
-bsec_bme_settings_t conf_bsec;
-bsec_input_t input[4];
-uint8_t n_input = 4;
-bsec_output_t output[4];
-uint8_t n_output=4;
-//state handling
-uint8_t serialized_state[BSEC_MAX_STATE_BLOB_SIZE];
-uint32_t n_serialized_state_max = BSEC_MAX_STATE_BLOB_SIZE;
-uint32_t n_serialized_state = BSEC_MAX_STATE_BLOB_SIZE;
-uint8_t work_buffer_state[BSEC_MAX_WORKBUFFER_SIZE];
-uint32_t n_work_buffer_size = BSEC_MAX_WORKBUFFER_SIZE;
-//configuration on shut down
-uint8_t serialized_settings[BSEC_MAX_PROPERTY_BLOB_SIZE];
-uint32_t n_serialized_settings_max = BSEC_MAX_PROPERTY_BLOB_SIZE;
-uint8_t work_buffer[BSEC_MAX_WORKBUFFER_SIZE];
-uint32_t n_work_buffer = BSEC_MAX_WORKBUFFER_SIZE;
-uint32_t n_serialized_settings = 0;
-//
-uint64_t time_us;
+    bsec_library_return_t rslt_bsec;
+    //measurements basically
+    bsec_sensor_configuration_t requested_virtual_sensors[4];
+    uint8_t n_requested_virtual_sensors = 4;
+    // Allocate a struct for the returned physical sensor settings
+    bsec_sensor_configuration_t required_sensor_settings[BSEC_MAX_PHYSICAL_SENSOR]; 
+    uint8_t n_required_sensor_settings = BSEC_MAX_PHYSICAL_SENSOR;
+    //configuration coming from bsec
+    bsec_bme_settings_t conf_bsec;
+    bsec_input_t input[4];
+    uint8_t n_input = 4;
+    bsec_output_t output[4];
+    uint8_t n_output=4;
+    //state handling
+    uint8_t serialized_state[BSEC_MAX_STATE_BLOB_SIZE];
+    uint32_t n_serialized_state_max = BSEC_MAX_STATE_BLOB_SIZE;
+    uint32_t n_serialized_state = BSEC_MAX_STATE_BLOB_SIZE;
+    uint8_t work_buffer_state[BSEC_MAX_WORKBUFFER_SIZE];
+    uint32_t n_work_buffer_size = BSEC_MAX_WORKBUFFER_SIZE;
+    //configuration on shut down
+    uint8_t serialized_settings[BSEC_MAX_PROPERTY_BLOB_SIZE];
+    uint32_t n_serialized_settings_max = BSEC_MAX_PROPERTY_BLOB_SIZE;
+    uint8_t work_buffer[BSEC_MAX_WORKBUFFER_SIZE];
+    uint32_t n_work_buffer = BSEC_MAX_WORKBUFFER_SIZE;
+    uint32_t n_serialized_settings = 0;
+    //
+    uint64_t time_us;
     /*
-    BME API VARIABLES
-*/
-struct bme68x_dev bme;
-struct bme68x_data data[3];
-struct bme68x_conf conf;
-struct bme68x_heatr_conf heatr_conf;
-uint16_t sample_count = 1;
-int8_t rslt_api;
+        BME API VARIABLES
+    */
+    struct bme68x_dev bme;
+    struct bme68x_data data[3];
+    struct bme68x_conf conf;
+    struct bme68x_heatr_conf heatr_conf;
+    uint16_t sample_count = 1;
+    int8_t rslt_api;
+    /*
+        Config struct
+    */
+    struct mainConfig config;
+    /*
+        File System variables
+    */
+    FRESULT fr;
+    FATFS fs;
+    int ret;
     stdio_init_all();
     sleep_ms(5000);
+    
     int8_t rslt;
+    /*
+        File System op
+    */
+    if (!sd_init_driver()) {
+        printf("ERROR: Could not initialize SD card\r\n");
+        while (true);
+    }
+
+    // Mount drive
+    fr = f_mount(&fs, "0:", 1);
+    if (fr != FR_OK) {
+        printf("ERROR: Could not mount filesystem (%d)\r\n", fr);
+        while (true);
+    }
+    //read file
+    read_json_file("default1.bmeconfig", &config);
+    sleep_ms(2);
+    // Unmount drive
+    f_unmount("0:");
 
     /* Heater temperature in degree Celsius */
     uint16_t temp_prof[10] = { 100, 100, 200, 200, 200, 200, 320, 320, 320, 320 };
@@ -91,7 +124,6 @@ int8_t rslt_api;
     /* Multiplier to the shared heater duration */
     uint16_t mul_prof[10] = { 2, 41, 2, 14, 14, 14, 2, 14, 14, 14};
 
-    stdio_init_all();
     //sleep to open the serial monitor in time
     sleep_ms(10000);
 
