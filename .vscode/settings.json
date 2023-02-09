@@ -4,6 +4,10 @@
         "bme68x.h": "c",
         "bme68x_api.h": "c",
         "bsec_datatypes.h": "c",
-        "bsec_interface.h": "c"
+        "bsec_interface.h": "c",
+        "ff.h": "c",
+        "stdlib.h": "c",
+        "read_json.h": "c",
+        "sd_card.h": "c"
     }
 }
