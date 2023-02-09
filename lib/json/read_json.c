@@ -3,7 +3,9 @@
 #include "ff.h"
 #include <string.h>
 #include <ctype.h>
+
 FRESULT frjson;
+FIL fil;
 
 
 
@@ -76,7 +78,7 @@ static int read_key(const char* str, char* result, int result_size){
                 result[j] = str[i];
                 i++;
                 return i;
-            }
+            }      
 
             if(in_string && in_key){
                 result[j] = str[i];
@@ -128,7 +130,7 @@ static void parse_header(const char* str, char* key, struct configHeader* ch, in
     }
 }
 
-static void parse_heater_profiles(const char* str, char* key, struct heaterProfile* hp, int i){
+static void parse_heater_profiles(const char* str, char* key, struct heaterProfile* hp, int t_t_idx, int i){
     bool in_value = false;
     int k = 0;
     int len = strlen(str);
@@ -140,7 +142,7 @@ static void parse_heater_profiles(const char* str, char* key, struct heaterProfi
             i++;
             continue;
         }
-        if(in_value  || str[i] == '0' || str[i] == '1' || str[i] == '2' || str[i] == '3' || str[i] == '4' || str[i] == '5' || str[i] == '6' || str[i] == '7' || str[i] == '8' || str[i] == '9'){
+        if(in_value || str[i] == '0' || str[i] == '1' || str[i] == '2' || str[i] == '3' || str[i] == '4' || str[i] == '5' || str[i] == '6' || str[i] == '7' || str[i] == '8' || str[i] == '9'){
             value[k] = str[i];
             k += 1;
         }
@@ -152,14 +154,16 @@ static void parse_heater_profiles(const char* str, char* key, struct heaterProfi
     }
 
     if(strncmp(key, "timeBase", strlen("timeBase")) == 0){
-        
         sscanf(value, "%d",  &hp->timeBase);
+    }
+
+    if(strncmp(key, "temperatureTimeVectors", strlen("temperatureTimeVectors")) == 0){
+        
     }
 }
 
 
 void read_json_file(char* filename, struct mainConfig* config){
-    FIL fil;
     char buf[100];
     frjson = f_open(&fil, filename, FA_READ);
     bool header = false;
@@ -168,6 +172,7 @@ void read_json_file(char* filename, struct mainConfig* config){
     bool dutyCycleProfiles = false;
     bool sensorConfigurations = false;
     int heat_prof_index = 0;
+    int temp_time_index = 0;
     if (frjson != FR_OK) {
         printf("ERROR: Could not open file (%d)\r\n", frjson);
         while (true);
@@ -176,12 +181,10 @@ void read_json_file(char* filename, struct mainConfig* config){
     printf("...Reading from file '%s':\r\n", filename);
     while (f_gets(buf, sizeof(buf), &fil)) {
         char trimmed[100];
+        char key[100];
         trim_whitespace(buf, trimmed, 100);  //line read without spaces 
-        char key[100] = " ";
         int i = read_key(trimmed, key, 100);
-        if(strlen(key) == 0){ //read some form of parenthesis or something so go ahead
-            continue;
-        }
+        
         //set the state variable that we are in header
         if(strncmp(key, CONFIGHEADER, strlen(CONFIGHEADER)) == 0){
             header = true;
@@ -232,8 +235,8 @@ void read_json_file(char* filename, struct mainConfig* config){
                 heat_prof_index += 1;
                 continue;
             }
-            parse_heater_profiles(trimmed, key, &config->heater_profile[heat_prof_index], i);
-            printf("Index: %d\n", heat_prof_index);
+
+            parse_heater_profiles(trimmed, key, &config->heater_profile[heat_prof_index], temp_time_index, i);
         }
 
         /*if(dutyCycleProfiles){
