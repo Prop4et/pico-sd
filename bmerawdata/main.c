@@ -115,6 +115,21 @@ int main(){
     //read file
     read_json_file("default1.bmeconfig", &config);
     sleep_ms(2);
+    printf("%s\n", config.config_header.dateCreated);
+    printf("%s\n", config.config_header.appVersion);
+    printf("%s\n", config.config_header.boardType);
+    printf("%s\n", config.config_header.boardMode);
+    printf("%s\n", config.config_header.boardLayout);
+    printf("%s\n", config.heater_profile[0].id);
+    printf("%d\n", config.heater_profile[0].timeBase);
+    printf("%s\n", config.heater_profile[1].id);
+    printf("%d\n", config.heater_profile[1].timeBase);
+    printf("%s\n", config.heater_profile[2].id);
+    printf("%d\n", config.heater_profile[2].timeBase);
+    printf("%s\n", config.heater_profile[3].id);
+    printf("%d\n", config.heater_profile[3].timeBase);
+
+
     // Unmount drive
     f_unmount("0:");
 

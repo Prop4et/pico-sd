@@ -8,6 +8,8 @@
         "ff.h": "c",
         "stdlib.h": "c",
         "read_json.h": "c",
-        "sd_card.h": "c"
+        "sd_card.h": "c",
+        "type_traits": "c",
+        "stdio.h": "c"
     }
 }

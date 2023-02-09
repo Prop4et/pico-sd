@@ -1,15 +1,23 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 
-#define DATECREATED     "dateCreated"
-#define APPVERSION      "appVersion"
-#define BOARDTYPE       "boardType"
-#define BOARDMODE       "boardMode"
-#define BOARDLAYOUT     "boardLayout"
+#define CONFIGHEADER                    "configHeader"
+#define CONFIGBODY                      "configBody"
+
+#define HEATERPROFILES                  "heaterProfiles"
+#define DUTYCYCLEPROFILES               "dutyCycleProfiles"
+#define SENSORCONFIGURATIONS            "sensorConfigurations"
+
+#define DATECREATED                     "dateCreated"
+#define APPVERSION                      "appVersion"
+#define BOARDTYPE                       "boardType"
+#define BOARDMODE                       "boardMode"
+#define BOARDLAYOUT                     "boardLayout"
+
 struct configHeader {
-    char dateCreated[24];
-    char appVersion[5];
-    char boardType[7];
+    char dateCreated[30];
+    char appVersion[8];
+    char boardType[9];
     char boardMode[125];
     char boardLayout[125];
 };
