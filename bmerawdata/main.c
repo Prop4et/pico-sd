@@ -113,6 +113,7 @@ int main(){
         while (true);
     }
     //read file
+    
     read_json_file("default1.bmeconfig", &config);
     sleep_ms(2);
     printf("%s\n", config.config_header.dateCreated);
@@ -120,14 +121,35 @@ int main(){
     printf("%s\n", config.config_header.boardType);
     printf("%s\n", config.config_header.boardMode);
     printf("%s\n", config.config_header.boardLayout);
-    printf("%s\n", config.heater_profile[0].id);
-    printf("%d\n", config.heater_profile[0].timeBase);
-    printf("%s\n", config.heater_profile[1].id);
-    printf("%d\n", config.heater_profile[1].timeBase);
-    printf("%s\n", config.heater_profile[2].id);
-    printf("%d\n", config.heater_profile[2].timeBase);
-    printf("%s\n", config.heater_profile[3].id);
-    printf("%d\n", config.heater_profile[3].timeBase);
+    printf("---------------heater profile-------------------\n");
+    for(int idx = 0; idx < 4; idx++){
+        printf("%s\n", config.heater_profile[idx].id);
+        printf("%d\n", config.heater_profile[idx].timeBase);
+        for(int idx2 = 0; idx2 < 10; idx2++){
+            printf("%d ", config.heater_profile[idx].temp_prof[idx2]);
+        }
+        printf("\n");
+        for(int idx2 = 0; idx2 < 10; idx2++){
+            printf("%d ", config.heater_profile[idx].mul_prof[idx2]);
+        }
+        printf("\n");
+
+    }
+    printf("---------------duty cycle profile-----------------\n");
+    printf("%s\n", config.duty_cycle_profile.id);
+    printf("%d\n", config.duty_cycle_profile.numberScanningCycles);
+    printf("%d\n", config.duty_cycle_profile.numberSleepingCycles);
+    printf("-----------------sensorconfig-------------------\n");
+    for(int idx = 0; idx<8; idx++){
+        printf("%d\n", config.sensor_configurations[idx].index);
+        printf("%s\n", config.sensor_configurations[idx].h_p);
+        printf("%s\n", config.sensor_configurations[idx].d_c_prof);
+    }
+    
+
+
+
+
 
 
     // Unmount drive

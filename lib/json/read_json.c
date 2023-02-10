@@ -7,28 +7,6 @@
 FRESULT frjson;
 FIL fil;
 
-
-
-/*static char* trim_white_space(char *str)
-{
-  char *end;
-
-  // Trim leading space
-  while(isspace((unsigned char)*str)) str++;
-
-  if(*str == 0)  // All spaces?
-    return str;
-
-  // Trim trailing space
-  end = str + strlen(str) - 1;
- 
-  while(end > str && isspace((unsigned char)*end)) end--;
-
-  // Write new null terminator character
-  end[1] = '\0';
-
-  return str;
-}*/
 #include <ctype.h>
 #include <string.h>
 
@@ -46,6 +24,24 @@ static void trim_whitespace(const char *str, char *result, int result_size) {
   }
   strncpy(result, str + i, new_len);
   result[new_len] = '\0';
+}
+
+static int string_to_int(const char *str) {
+    int result = 0;
+    int sign = 1;
+    int i = 0;
+
+    if (str[0] == '-') {
+        sign = -1;
+        i++;
+    }
+
+    while (str[i] != '\0') {
+        result = result * 10 + str[i] - '0';
+        i++;
+    }
+
+    return result * sign;
 }
 
 /**
@@ -130,11 +126,12 @@ static void parse_header(const char* str, char* key, struct configHeader* ch, in
     }
 }
 
-static void parse_heater_profiles(const char* str, char* key, struct heaterProfile* hp, int t_t_idx, int i){
+static void parse_heater_profiles(const char* str, char* key, struct heaterProfile* hp, int i){
     bool in_value = false;
     int k = 0;
     int len = strlen(str);
-    char value[100] = " ";
+    char value[100] = "";
+
     while(i<len){
         
         if(str[i] == '"'){
@@ -142,26 +139,120 @@ static void parse_heater_profiles(const char* str, char* key, struct heaterProfi
             i++;
             continue;
         }
-        if(in_value || str[i] == '0' || str[i] == '1' || str[i] == '2' || str[i] == '3' || str[i] == '4' || str[i] == '5' || str[i] == '6' || str[i] == '7' || str[i] == '8' || str[i] == '9'){
+        if(in_value || isdigit(str[i])){
             value[k] = str[i];
             k += 1;
         }
         i++;
     }
     if(strncmp(key, "id", 2) == 0){
-        strncpy(hp->id, value, strlen(value));
-        hp->id[strlen(value)] = '\0';
+        strncpy(hp->id, value, k);
+        hp->id[k] = '\0';
     }
 
     if(strncmp(key, "timeBase", strlen("timeBase")) == 0){
-        sscanf(value, "%d",  &hp->timeBase);
-    }
-
-    if(strncmp(key, "temperatureTimeVectors", strlen("temperatureTimeVectors")) == 0){
-        
+        hp->timeBase = string_to_int(value);
     }
 }
 
+static void parse_array(const char* str, struct heaterProfile* hp, int *list_pos, int* arr_idx){
+    int k = 0;
+    int i = 0;
+    int len = strlen(str);
+    char val[100] = "";
+    if(strncmp(str, "],", 2) == 0){
+        //inc index array
+        *arr_idx += 1;
+    }
+    while(i<len && str[i] != ','){
+        if(isdigit(str[i])){
+            val[k] = str[i];
+            k +=1 ;
+        }
+        i++;
+    }
+    if(*list_pos == 0 && k > 0){
+        //save temperature
+        hp->temp_prof[*arr_idx] = string_to_int(val);
+        *list_pos += 1;
+        return;
+    }
+    if(*list_pos == 1 && k > 0){
+        //save duration
+        hp->mul_prof[*arr_idx] = string_to_int(val);
+        *list_pos -= 1;
+        return;
+    }
+}
+
+static void parse_dutyc_profiles(const char* str, char* key, struct dutyCycleProfile* dcp, int i){
+    bool in_value = false;
+    int k = 0;
+    int len = strlen(str);
+    char value[100] = "";
+
+    while(i<len){
+        
+        if(str[i] == '"'){
+            in_value = !in_value;
+            i++;
+            continue;
+        }
+        if(in_value || isdigit(str[i])){
+            value[k] = str[i];
+            k += 1;
+        }
+        i++;
+    }
+    if(strncmp(key, "id", 2) == 0){
+        strncpy(dcp->id, value, k);
+        dcp->id[k] = '\0';
+    }
+
+    if(strncmp(key, "numberScanningCycles", strlen("numberScanningCycles")) == 0){
+        dcp->numberScanningCycles = string_to_int(value);
+    }
+
+    if(strncmp(key, "numberSleepingCycles", strlen("numberSleepingCycles")) == 0){
+        dcp->numberSleepingCycles = string_to_int(value);
+    }    
+}
+
+
+static void parse_config_profiles(const char* str, char* key, struct sensorConfigurations* sc, int i){
+    bool in_value = false;
+    int k = 0;
+    int len = strlen(str);
+    char value[100] = "";
+
+    while(i<len){
+        
+        if(str[i] == '"'){
+            in_value = !in_value;
+            i++;
+            continue;
+        }
+        if(in_value || isdigit(str[i])){
+            value[k] = str[i];
+            k += 1;
+        }
+        i++;
+    }
+    if(strncmp(key, "sensorIndex", strlen("sensorIndex")) == 0){
+        sc->index = string_to_int(value);
+    }
+
+    if(strncmp(key, "heaterProfile", strlen("heaterProfile")) == 0){
+        strncpy(sc->h_p, value, strlen(value));
+        sc->h_p[strlen(sc->h_p)] = '\0';
+    }
+
+    if(strncmp(key, "dutyCycleProfile", strlen("dutyCycleProfile")) == 0){
+        strncpy(sc->d_c_prof , value, strlen(value));
+        sc->d_c_prof[strlen(sc->d_c_prof)] = '\0';
+    }
+
+}
 
 void read_json_file(char* filename, struct mainConfig* config){
     char buf[100];
@@ -170,9 +261,11 @@ void read_json_file(char* filename, struct mainConfig* config){
     bool body = false;
     bool heaterProfiles = false;
     bool dutyCycleProfiles = false;
-    bool sensorConfigurations = false;
-    int heat_prof_index = 0;
-    int temp_time_index = 0;
+    bool sensorConfiguration = false;
+    bool temperatureTimeVectors = false;
+    int prof_index;
+    int list_pos;
+    int arr_idx;
     if (frjson != FR_OK) {
         printf("ERROR: Could not open file (%d)\r\n", frjson);
         while (true);
@@ -181,7 +274,7 @@ void read_json_file(char* filename, struct mainConfig* config){
     printf("...Reading from file '%s':\r\n", filename);
     while (f_gets(buf, sizeof(buf), &fil)) {
         char trimmed[100];
-        char key[100];
+        char key[100] = "";
         trim_whitespace(buf, trimmed, 100);  //line read without spaces 
         int i = read_key(trimmed, key, 100);
         
@@ -206,46 +299,73 @@ void read_json_file(char* filename, struct mainConfig* config){
         if(body && strncmp(key, HEATERPROFILES, strlen(HEATERPROFILES)) == 0){
             heaterProfiles = true;
             dutyCycleProfiles = false;
-            sensorConfigurations = false;
+            sensorConfiguration = false;
+            prof_index = 0;
             continue;
         }
 
         if(body && strncmp(key, DUTYCYCLEPROFILES, strlen(DUTYCYCLEPROFILES)) == 0){
             heaterProfiles = false;
             dutyCycleProfiles = true;
-            sensorConfigurations = false;
+            struct dutyCycleProfile newProfile;
+            config->duty_cycle_profile = newProfile;
+            sensorConfiguration = false;
             continue;
         }
 
         if(body && strncmp(key, SENSORCONFIGURATIONS, strlen(SENSORCONFIGURATIONS)) == 0){
             heaterProfiles = false;
             dutyCycleProfiles = false;
-            sensorConfigurations = true;
+            sensorConfiguration = true;
+            prof_index = 0;
             continue;
         }
 
         if(heaterProfiles){
             if(key[0] == '{'){
                 struct heaterProfile newProfile;
-                config->heater_profile[heat_prof_index] = newProfile;
+                config->heater_profile[prof_index] = newProfile;
                 continue;
             }
 
             if(key[0] == '}'){
-                heat_prof_index += 1;
+                prof_index += 1;
+                temperatureTimeVectors = false;
                 continue;
             }
 
-            parse_heater_profiles(trimmed, key, &config->heater_profile[heat_prof_index], temp_time_index, i);
+            if(strncmp(key, TEMPTIMEVECTORS, strlen(TEMPTIMEVECTORS)) == 0){
+                temperatureTimeVectors = true;
+                list_pos = 0;
+                arr_idx = 0;
+                continue;
+            }
+            if(!temperatureTimeVectors){
+                parse_heater_profiles(trimmed, key, &config->heater_profile[prof_index], i);
+            }else{
+                parse_array(trimmed, &config->heater_profile[prof_index], &list_pos, &arr_idx);
+            }
         }
 
-        /*if(dutyCycleProfiles){
-            parse_heater_profiles();
+        if(dutyCycleProfiles){
+            parse_dutyc_profiles(trimmed, key, &config->duty_cycle_profile, i);
         }
+        
+        if(sensorConfiguration){
+            if(key[0] == '{'){
+                struct sensorConfigurations newProfile;
+                config->sensor_configurations[prof_index] = newProfile;
+                continue;
+            }
 
-        if(sensorConfigurations){
-            parse_heater_profiles();
-        }*/
+            if(key[0] == '}'){
+                prof_index += 1;
+                continue;
+            }
+
+            parse_config_profiles(trimmed, key, &config->sensor_configurations[prof_index], i);
+
+        }
     }
 
 

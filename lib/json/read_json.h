@@ -13,7 +13,7 @@
 #define BOARDTYPE                       "boardType"
 #define BOARDMODE                       "boardMode"
 #define BOARDLAYOUT                     "boardLayout"
-
+#define TEMPTIMEVECTORS                 "temperatureTimeVectors"
 struct configHeader {
     char dateCreated[30];
     char appVersion[8];
@@ -38,8 +38,8 @@ struct dutyCycleProfile{
 
 struct sensorConfigurations{
     uint8_t index;
-    char heater_prof[10]; //same value as in id in heaterProfile
-    char id[8]; //same value as id in dutyCycleProfile
+    char h_p[11]; //same value as in id in heaterProfile
+    char d_c_prof[9]; //same value as id in dutyCycleProfile
 };
 
 struct mainConfig{ 
